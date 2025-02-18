@@ -41,14 +41,12 @@ public class IngressAdapter implements FragmentHandler
                         sf.headerDecoder().blockLength(),
                         version);
 
-                final MarketOrder marketOrder = new MarketOrder(
-                        sf.marketRequestDecoder().side(),
-                        sf.marketRequestDecoder().price(),
-                        sf.marketRequestDecoder().quantity(),
-                        sf.marketRequestDecoder().timestamp(),
-                        sf.marketRequestDecoder().username()
-                        );
-                orderService.handleMarketOrderRequest(marketOrder);
+                orderService.handleMarketOrderRequest(
+                                    sf.marketRequestDecoder().side(),
+                                    sf.marketRequestDecoder().price(),
+                                    sf.marketRequestDecoder().quantity(),
+                                    sf.marketRequestDecoder().timestamp(),
+                                    sf.marketRequestDecoder().username());
             }
             case LimitOrderRequestDecoder.TEMPLATE_ID ->
             {

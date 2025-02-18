@@ -1,5 +1,6 @@
 package org.weareadaptive.service;
 
+import com.weareadaptive.sbe.Side;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.weareadaptive.domain.LimitOrder;
@@ -8,18 +9,19 @@ import org.weareadaptive.domain.StopOrder;
 import org.weareadaptive.domain.repository.LimitRepository;
 import org.weareadaptive.domain.repository.MarketRepository;
 import org.weareadaptive.domain.repository.StopRepository;
+import org.weareadaptive.domain.repository.UserRepository;
 import org.weareadaptive.infra.responder.TraderResponder;
 import org.weareadaptive.infra.session.ClientSessionServiceImpl;
-import org.weareadaptive.util.Side;
 
 
 
 public class OrderService
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
-    private final MarketRepository marketRepository = new MarketRepository(0);
+    private final MarketRepository marketRepository = new MarketRepository();
     private final LimitRepository limitRepository = new LimitRepository();
     private final StopRepository stopRepository = new StopRepository();
+    private final UserRepository userRepository = new UserRepository();
     private final ClientSessionServiceImpl clientSessionService = new ClientSessionServiceImpl();
     private final TraderResponder traderResponder;
 
@@ -29,12 +31,27 @@ public class OrderService
     }
 
     @SuppressWarnings("checkstyle:LeftCurly")
-    public void handleMarketOrderRequest(final MarketOrder marketOrder)
+    public void handleMarketOrderRequest(final Side sbeSide,
+                                         final long price,
+                                         final int quantity,
+                                         final long timestampMs,
+                                         final String username)
     {
+        final long userId = userRepository.getOrCreateUserId(username);
+        final long orderId = marketRepository.getOrCreateOrderId();
+        final MarketOrder marketOrder = new MarketOrder(
+                sbeSide,
+                orderId,
+                userId,
+                price,
+                quantity,
+                timestampMs
+        );
+
         marketRepository.add(marketOrder);
         orderNotification(marketOrder);
 
-        final Side side = Side.valueOf(marketOrder.side().toString());
+        final Side side = Side.valueOf(sbeSide.toString());
 
         switch (side)
         {
