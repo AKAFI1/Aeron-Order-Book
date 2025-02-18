@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation('io.aeron:aeron-all:1.42.1')
+    implementation project(":sbe")
+    implementation('org.slf4j:slf4j-api:2.0.7')
+    implementation('io.netty:netty-resolver-dns-native-macos:4.1.94.Final:osx-aarch_64')
+    implementation('ch.qos.logback:logback-classic:1.4.7')
+    implementation 'io.vertx:vertx-web:4.5.12'
+    implementation 'io.vertx:vertx-core:4.5.12'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
+
+}
+
+
+tasks.withType(JavaExec) {
+    jvmArgs = [
+            '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+            '--add-opens=java.base/java.nio=ALL-UNNAMED'
+    ]
+}

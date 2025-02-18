@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CheckStyle-IDEA" serialisationVersion="2">
+    <checkstyleVersion>10.20.2</checkstyleVersion>
+    <scanScope>JavaOnly</scanScope>
+    <option name="thirdPartyClasspath" />
+    <option name="activeLocationIds">
+      <option value="e6aa68e0-3022-4545-85c7-d37fd5f9fc6e" />
+    </option>
+    <option name="locations">
+      <list>
+        <ConfigurationLocation id="bundled-sun-checks" type="BUNDLED" scope="All" description="Sun Checks">(bundled)</ConfigurationLocation>
+        <ConfigurationLocation id="bundled-google-checks" type="BUNDLED" scope="All" description="Google Checks">(bundled)</ConfigurationLocation>
+        <ConfigurationLocation id="7c158c5b-f348-45c0-94b7-2b19f650c09c" type="LOCAL_FILE" scope="All" description="aeron-checkstyle">
+          $USER_HOME$/ecp-backend-24/Everything Aeron/Aeron-Demo/aeron-demo/config/checkstyle/checkstyle.xml
+          <option name="properties">
+            <map>
+              <entry key="config_loc" value="" />
+            </map>
+          </option>
+        </ConfigurationLocation>
+        <ConfigurationLocation id="e6aa68e0-3022-4545-85c7-d37fd5f9fc6e" type="LOCAL_FILE" scope="All" description="hydra-checkstyle">
+          $USER_HOME$/ecp-backend-24/Everything Hydra/Hydra-AuctionHouse-Kyoshi/ecp-hydra-auction-house-kyoshi/config/checkstyle.xml
+          <option name="properties">
+            <map>
+              <entry key="suppressionFile" value="suppressions.xml" />
+            </map>
+          </option>
+        </ConfigurationLocation>
+      </list>
+    </option>
+  </component>
+</project>

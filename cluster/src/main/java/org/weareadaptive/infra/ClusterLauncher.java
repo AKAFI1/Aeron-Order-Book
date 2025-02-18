@@ -1,0 +1,71 @@
+package org.weareadaptive.infra;
+
+import io.aeron.cluster.ClusteredMediaDriver;
+import io.aeron.cluster.service.ClusteredServiceContainer;
+import io.aeron.samples.cluster.ClusterConfig;
+import org.agrona.ErrorHandler;
+import org.agrona.concurrent.ShutdownSignalBarrier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+public class ClusterLauncher
+{
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClusterLauncher.class);
+
+    public static void main(final String[] args)
+    {
+        if (args.length < 2)
+        {
+            System.err.println("Usage: NodeLauncher <nodeId> <ingressChannel>");
+            System.exit(1);
+        }
+        else if (args.length > 2)
+        {
+            System.err.println("Too many args");
+            System.exit(1);
+        }
+
+        final int nodeId = Integer.parseInt(args[0]);
+        final String ingressChannel = args[1];
+
+        final ShutdownSignalBarrier barrier = new ShutdownSignalBarrier();
+
+        final ClusterConfig clusterConfig = ClusterConfig.create(
+                nodeId,
+                List.of("localhost", "localhost", "localhost"),
+                List.of("localhost", "localhost", "localhost"),
+                9000,
+                new TradingClusteredService());
+
+        clusterConfig.mediaDriverContext().errorHandler(errorHandler("Media Driver"));
+        clusterConfig.archiveContext().errorHandler(errorHandler("Archive"));
+        clusterConfig.aeronArchiveContext().errorHandler(errorHandler("Aeron Archive"));
+        clusterConfig.consensusModuleContext().errorHandler(errorHandler("Consensus Module"));
+        clusterConfig.clusteredServiceContext().errorHandler(errorHandler("Clustered Service"));
+        clusterConfig.consensusModuleContext().ingressChannel(ingressChannel);
+        clusterConfig.consensusModuleContext().deleteDirOnStart(false);
+
+        try (ClusteredMediaDriver ignore = ClusteredMediaDriver.launch(
+                clusterConfig.mediaDriverContext(),
+                clusterConfig.archiveContext(),
+                clusterConfig.consensusModuleContext());
+             ClusteredServiceContainer ignore1 = ClusteredServiceContainer.launch(
+                     clusterConfig.clusteredServiceContext()))
+        {
+            LOGGER.info("Started Cluster Node...");
+            barrier.await();
+            LOGGER.info("Exiting");
+        }
+    }
+
+    private static ErrorHandler errorHandler(final String context)
+    {
+        return (Throwable throwable) ->
+        {
+            System.err.println(context);
+            throwable.printStackTrace(System.err);
+        };
+    }
+}
