@@ -41,42 +41,39 @@ public class IngressAdapter implements FragmentHandler
                         sf.headerDecoder().blockLength(),
                         version);
 
+                final FixedStringEncodingDecoder usernameDecoder = sf.marketRequestDecoder().username();
+                final String username = usernameDecoder.string();
+
                 orderService.handleMarketOrderRequest(
+                                    username,
                                     sf.marketRequestDecoder().side(),
                                     sf.marketRequestDecoder().price(),
                                     sf.marketRequestDecoder().quantity(),
-                                    sf.marketRequestDecoder().timestamp(),
-                                    sf.marketRequestDecoder().username());
+                                    sf.marketRequestDecoder().timestamp());
             }
             case LimitOrderRequestDecoder.TEMPLATE_ID ->
             {
                 sf.limitRequestDecoder().wrapAndApplyHeader(buffer, 0, sf.headerDecoder());
 
-                final LimitOrder limitOrder = new LimitOrder(
+                orderService.handleLimitOrderRequest(
+                        sf.limitRequestDecoder().username().toString(),
                         sf.limitRequestDecoder().side(),
-                        sf.limitRequestDecoder().userId(),
-                        sf.limitRequestDecoder().orderId(),
                         sf.limitRequestDecoder().price(),
                         sf.limitRequestDecoder().limitPrice(),
                         sf.limitRequestDecoder().quantity(),
-                        sf.limitRequestDecoder().timestamp()
-                );
-                orderService.handleLimitOrderRequest(limitOrder);
+                        sf.limitRequestDecoder().timestamp());
             }
             case StopOrderRequestDecoder.TEMPLATE_ID ->
             {
                 sf.stopRequestDecoder().wrapAndApplyHeader(buffer, 0, sf.headerDecoder());
 
-                final StopOrder stopOrder = new StopOrder(
+                orderService.handleStopOrderRequest(
+                        sf.stopRequestDecoder().username().toString(),
                         sf.stopRequestDecoder().side(),
-                        sf.stopRequestDecoder().userId(),
-                        sf.stopRequestDecoder().orderId(),
                         sf.stopRequestDecoder().price(),
                         sf.stopRequestDecoder().stopPrice(),
                         sf.stopRequestDecoder().quantity(),
-                        sf.stopRequestDecoder().timestamp()
-                );
-                orderService.handleStopOrderRequest(stopOrder);
+                        sf.stopRequestDecoder().timestamp());
             }
 
         }

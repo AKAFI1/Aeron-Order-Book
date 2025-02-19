@@ -111,8 +111,8 @@ public class TraderClient implements EgressListener
                           final int length,
                           final Header header)
     {
-        sf.actionResultDecoder().wrapAndApplyHeader(buffer, offset, sf.headerDecoder());
-        final String result = sf.actionResultDecoder().resultMessage();
+        sf.resultDecoder().wrapAndApplyHeader(buffer, offset, sf.headerDecoder());
+        final String result = sf.resultDecoder().resultMessage();
 
         forwardResultToClient(buffer, offset, length);
         LOGGER.info("Received result: {}", result);

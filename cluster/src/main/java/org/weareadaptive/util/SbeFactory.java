@@ -9,6 +9,9 @@ public final class SbeFactory
     private final MessageHeaderDecoder headerDecoder;
     private final MessageHeaderEncoder headerEncoder;
 
+    private final FixedStringEncodingDecoder fixedStringDecoder;
+    private final FixedStringEncodingEncoder fixedStringEncoder;
+
     private final ActionResultDecoder resultDecoder;
     private final ActionResultEncoder resultEncoder;
 
@@ -26,6 +29,9 @@ public final class SbeFactory
     {
         headerDecoder = new MessageHeaderDecoder();
         headerEncoder = new MessageHeaderEncoder();
+
+        fixedStringDecoder = new FixedStringEncodingDecoder();
+        fixedStringEncoder = new FixedStringEncodingEncoder();
 
         resultDecoder = new ActionResultDecoder();
         resultEncoder = new ActionResultEncoder();
@@ -53,6 +59,16 @@ public final class SbeFactory
     public MessageHeaderEncoder headerEncoder()
     {
         return headerEncoder;
+    }
+
+    public FixedStringEncodingDecoder stringDecoder()
+    {
+        return fixedStringDecoder;
+    }
+
+    public FixedStringEncodingEncoder stringEncoder()
+    {
+        return fixedStringEncoder;
     }
 
     public ActionResultDecoder resultDecoder()

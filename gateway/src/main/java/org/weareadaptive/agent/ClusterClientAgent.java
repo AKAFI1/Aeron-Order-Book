@@ -37,7 +37,7 @@ public class ClusterClientAgent implements Agent
     }
 
     @Override
-    public int doWork()
+    public int doWork() throws InterruptedException
     {
         int workCount = 0;
         switch (agentState)
@@ -58,6 +58,7 @@ public class ClusterClientAgent implements Agent
                 {
                     workCount += clusterClient.pollEgress();
                     workCount += towardsClusterBuffer.read(this::processRingBuffer);
+                    Thread.sleep(1000);
 
                     final long now = epochClock.time();
                     if (now >= (lastHeartbeatTime + HEARTBEAT_INTERVAL))
@@ -76,7 +77,7 @@ public class ClusterClientAgent implements Agent
     }
 
     @Override
-    public void onClose ()
+    public void onClose()
     {
         publication.close();
     }

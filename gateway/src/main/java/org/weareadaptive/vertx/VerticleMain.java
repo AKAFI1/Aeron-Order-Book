@@ -101,8 +101,8 @@ public class VerticleMain extends AbstractVerticle
     {
         while (towardsClientBuffer.read((msgTypeId, buffer, index, length) ->
         {
-            sf.actionResultDecoder().wrapAndApplyHeader(buffer, index, sf.headerDecoder());
-            final String message = sf.actionResultDecoder().resultMessage();
+            sf.resultDecoder().wrapAndApplyHeader(buffer, index, sf.headerDecoder());
+            final String message = sf.resultDecoder().resultMessage();
 
             onReceiveMessageFromCluster(message);
         }) > 0)

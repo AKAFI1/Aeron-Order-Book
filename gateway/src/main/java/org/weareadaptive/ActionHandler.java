@@ -1,6 +1,9 @@
 package org.weareadaptive;
 
+import com.weareadaptive.sbe.FixedStringEncodingEncoder;
 import com.weareadaptive.sbe.MarketRequestEncoder;
+import org.agrona.ExpandableDirectByteBuffer;
+import org.agrona.concurrent.UnsafeBuffer;
 import org.agrona.concurrent.ringbuffer.ManyToOneRingBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,10 +12,15 @@ import org.weareadaptive.dto.MarketRequest;
 import org.weareadaptive.dto.StopRequest;
 import org.weareadaptive.util.SbeFactory;
 
+import java.nio.ByteBuffer;
+
 public class ActionHandler
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
     private final SbeFactory sf = SbeFactory.sbeFactory();
+
+    ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+    UnsafeBuffer buffer = new UnsafeBuffer(byteBuffer);
 
     private final ManyToOneRingBuffer towardsClusterBuffer;
 
@@ -23,23 +31,30 @@ public class ActionHandler
 
     public void onMarketOrder(final MarketRequest request, final long correlationId)
     {
-        sf.marketRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder());
+        sf.marketRequestEncoder().wrapAndApplyHeader(buffer, 0, sf.headerEncoder());
+        sf.resultEncoder().wrapAndApplyHeader(buffer, 0, sf.headerEncoder());
         sf.headerEncoder().correlationId(correlationId);
 
-        final int length = sf.headerEncoder().encodedLength() + sf.marketRequestEncoder().encodedLength();
+        final int length = sf.headerEncoder().encodedLength() +
+                sf.marketRequestEncoder().encodedLength() +
+                sf.stringEncoder().encodedLength();
+
         final int claimIndex = towardsClusterBuffer.tryClaim(1, length);
 
         if (claimIndex > 0)
         {
             sf.marketRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), claimIndex, sf.headerEncoder());
+            sf.headerEncoder().correlationId(correlationId);
 
-            sf.marketRequestEncoder().orderType(request.orderType());
-            sf.marketRequestEncoder().side(request.side());
-            sf.marketRequestEncoder().userId(request.userId());
-            sf.marketRequestEncoder().orderId(request.orderId());
-            sf.marketRequestEncoder().price(request.price());
-            sf.marketRequestEncoder().quantity(request.quantity());
-            sf.marketRequestEncoder().timestamp(request.timestamp());
+            final FixedStringEncodingEncoder usernameEncoder = sf.marketRequestEncoder().username();
+            usernameEncoder.string(request.username());
+
+            sf.marketRequestEncoder()
+                    .orderType(request.orderType())
+                    .side(request.side())
+                    .price(request.price())
+                    .quantity(request.quantity())
+                    .timestamp(request.timestamp());
 
             towardsClusterBuffer.commit(claimIndex);
             LOGGER.info("Commited market order");
@@ -61,8 +76,6 @@ public class ActionHandler
             sf.limitRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder())
                     .orderType(request.orderType())
                     .side(request.side())
-                    .userId(request.userId())
-                    .orderId(request.orderId())
                     .price(request.price())
                     .limitPrice(request.limitPrice())
                     .quantity(request.quantity())
@@ -87,13 +100,10 @@ public class ActionHandler
             sf.stopRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder())
                     .orderType(request.orderType())
                     .side(request.side())
-                    .userId(request.userId())
-                    .orderId(request.orderId())
                     .price(request.price())
                     .stopPrice(request.stopPrice())
                     .quantity(request.quantity())
-                    .timestamp(request.timestamp())
-                    .orderType(request.orderType());
+                    .timestamp(request.timestamp());
 
             towardsClusterBuffer.commit(claimIndex);
         }

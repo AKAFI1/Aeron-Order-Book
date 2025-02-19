@@ -45,7 +45,8 @@ public class ClusterLauncher
         clusterConfig.consensusModuleContext().errorHandler(errorHandler("Consensus Module"));
         clusterConfig.clusteredServiceContext().errorHandler(errorHandler("Clustered Service"));
         clusterConfig.consensusModuleContext().ingressChannel(ingressChannel);
-        clusterConfig.consensusModuleContext().deleteDirOnStart(false);
+        clusterConfig.consensusModuleContext().deleteDirOnStart(true);
+        //TODO change to false when snapshotting
 
         try (ClusteredMediaDriver ignore = ClusteredMediaDriver.launch(
                 clusterConfig.mediaDriverContext(),

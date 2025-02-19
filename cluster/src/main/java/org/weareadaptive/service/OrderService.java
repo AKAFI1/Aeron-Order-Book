@@ -30,15 +30,15 @@ public class OrderService
         this.traderResponder = traderResponder;
     }
 
-    @SuppressWarnings("checkstyle:LeftCurly")
-    public void handleMarketOrderRequest(final Side sbeSide,
+    public void handleMarketOrderRequest(final String username,
+                                         final Side sbeSide,
                                          final long price,
                                          final int quantity,
-                                         final long timestampMs,
-                                         final String username)
+                                         final long timestampMs)
     {
         final long userId = userRepository.getOrCreateUserId(username);
         final long orderId = marketRepository.getOrCreateOrderId();
+
         final MarketOrder marketOrder = new MarketOrder(
                 sbeSide,
                 orderId,
@@ -49,21 +49,43 @@ public class OrderService
         );
 
         marketRepository.add(marketOrder);
-        orderNotification(marketOrder);
+        orderNotification(username, marketOrder);
+        LOGGER.info("Market order added: {}", marketOrder);
 
         final Side side = Side.valueOf(sbeSide.toString());
 
         switch (side)
         {
-            case BID -> { placeBuyOrder(marketOrder); }
-            case ASK -> { placeSellOrder(marketOrder); }
+            case BID ->
+            { placeBuyOrder(marketOrder); }
+            case ASK ->
+            { placeSellOrder(marketOrder); }
         }
     }
 
     @SuppressWarnings("checkstyle:LeftCurly")
-    public void handleLimitOrderRequest(final LimitOrder limitOrder) {
+    public void handleLimitOrderRequest(final String username,
+                                        final Side sbeSide,
+                                        final long price,
+                                        final long limitPrice,
+                                        final int quantity,
+                                        final long timestamp)
+    {
+        final long userId = userRepository.getOrCreateUserId(username);
+        final long orderId = marketRepository.getOrCreateOrderId();
+
+        final LimitOrder limitOrder = new LimitOrder(
+                sbeSide,
+                orderId,
+                userId,
+                price,
+                limitPrice,
+                quantity,
+                timestamp
+        );
+
         limitRepository.add(limitOrder);
-        orderNotification(limitOrder);
+        orderNotification(username, limitOrder);
 
         final Side side = Side.valueOf(limitOrder.side().toString());
 
@@ -74,10 +96,28 @@ public class OrderService
     }
 
     @SuppressWarnings("checkstyle:LeftCurly")
-    public void handleStopOrderRequest(final StopOrder stopOrder)
+    public void handleStopOrderRequest(final String username,
+                                       final Side sbeSide,
+                                       final long price,
+                                       final long stopPrice,
+                                       final int quantity,
+                                       final long timestamp)
     {
+        final long userId = userRepository.getOrCreateUserId(username);
+        final long orderId = marketRepository.getOrCreateOrderId();
+
+        final StopOrder stopOrder = new StopOrder(
+                sbeSide,
+                orderId,
+                userId,
+                price,
+                stopPrice,
+                quantity,
+                timestamp
+        );
+
         stopRepository.add(stopOrder);
-        orderNotification(stopOrder);
+        orderNotification(username, stopOrder);
 
         final Side side = Side.valueOf(stopOrder.side().toString());
 
@@ -90,17 +130,15 @@ public class OrderService
 
     private <T> void placeBuyOrder(final T order)
     {
-        orderNotification(order);
     }
 
     private <T> void placeSellOrder(final T order)
     {
-        orderNotification(order);
     }
 
-    private <T> void orderNotification(final T order)
+    private <T> void orderNotification(final String username, final T order)
     {
-        final String response = "Thank you for making an order: \n" + order;
+        final String response = "Thank you " + username + " for making an order: \n" + order;
 
         traderResponder.sendResponseMessage(response);
     }

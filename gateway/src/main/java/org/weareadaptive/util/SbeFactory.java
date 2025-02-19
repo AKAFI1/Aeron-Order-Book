@@ -2,14 +2,18 @@ package org.weareadaptive.util;
 
 import com.weareadaptive.sbe.*;
 
-public final class SbeFactory {
+public final class SbeFactory
+{
     private static SbeFactory instance = new SbeFactory();
 
     private final MessageHeaderDecoder headerDecoder;
     private final MessageHeaderEncoder headerEncoder;
 
-    private final ActionResultDecoder actionResultDecoder;
-    private final ActionResultEncoder actionResultEncoder;
+    private final FixedStringEncodingDecoder fixedStringDecoder;
+    private final FixedStringEncodingEncoder fixedStringEncoder;
+
+    private final ActionResultDecoder resultDecoder;
+    private final ActionResultEncoder resultEncoder;
 
     private final MarketRequestDecoder marketRequestDecoder;
     private final MarketRequestEncoder marketRequestEncoder;
@@ -20,12 +24,17 @@ public final class SbeFactory {
     private final StopOrderRequestDecoder stopRequestDecoder;
     private final StopOrderRequestEncoder stopRequestEncoder;
 
-    private SbeFactory() {
+
+    private SbeFactory()
+    {
         headerDecoder = new MessageHeaderDecoder();
         headerEncoder = new MessageHeaderEncoder();
 
-        actionResultDecoder = new ActionResultDecoder();
-        actionResultEncoder = new ActionResultEncoder();
+        fixedStringDecoder = new FixedStringEncodingDecoder();
+        fixedStringEncoder = new FixedStringEncodingEncoder();
+
+        resultDecoder = new ActionResultDecoder();
+        resultEncoder = new ActionResultEncoder();
 
         marketRequestDecoder = new MarketRequestDecoder();
         marketRequestEncoder = new MarketRequestEncoder();
@@ -52,14 +61,24 @@ public final class SbeFactory {
         return headerEncoder;
     }
 
-    public ActionResultDecoder actionResultDecoder()
+    public FixedStringEncodingDecoder stringDecoder()
     {
-        return actionResultDecoder;
+        return fixedStringDecoder;
     }
 
-    public ActionResultEncoder actionResultEncoder()
+    public FixedStringEncodingEncoder stringEncoder()
     {
-        return actionResultEncoder;
+        return fixedStringEncoder;
+    }
+
+    public ActionResultDecoder resultDecoder()
+    {
+        return resultDecoder;
+    }
+
+    public ActionResultEncoder resultEncoder()
+    {
+        return resultEncoder;
     }
 
     public MarketRequestDecoder marketRequestDecoder()
