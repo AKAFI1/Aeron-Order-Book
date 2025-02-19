@@ -1,14 +1,9 @@
 package org.weareadaptive.dto;
 
-import com.weareadaptive.sbe.OrderType;
-import com.weareadaptive.sbe.Side;
-
-public record LimitRequest(OrderType orderType,
-                           Side side,
-                           long price,
+public record LimitRequest(String username,
+                           String side,
                            long limitPrice,
                            int quantity,
-                           long timestamp,
-                           String username)
+                           long timestamp)
 {
 }

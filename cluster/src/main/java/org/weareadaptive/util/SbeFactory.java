@@ -110,4 +110,17 @@ public final class SbeFactory
     {
         return stopRequestEncoder;
     }
+
+    public String toString(final Side side)
+    {
+        switch (side)
+        {
+            case BID:
+                return "BID";
+            case ASK:
+                return "ASK";
+            default:
+                throw new IllegalArgumentException("Unknown side: " + side);
+        }
+    }
 }

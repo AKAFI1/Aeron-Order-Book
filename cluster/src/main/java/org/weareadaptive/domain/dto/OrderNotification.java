@@ -1,4 +1,4 @@
-package org.weareadaptive.domain;
+package org.weareadaptive.domain.dto;
 
 import com.weareadaptive.sbe.OrderType;
 

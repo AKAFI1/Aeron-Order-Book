@@ -1,8 +1,7 @@
 package org.weareadaptive.domain.repository;
 
 import org.agrona.collections.Long2ObjectHashMap;
-import org.weareadaptive.domain.LimitOrder;
-import org.weareadaptive.domain.MarketOrder;
+import org.weareadaptive.domain.dto.MarketOrder;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;

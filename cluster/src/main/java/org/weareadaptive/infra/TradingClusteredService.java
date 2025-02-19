@@ -10,7 +10,6 @@ import io.aeron.logbuffer.Header;
 import org.agrona.DirectBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.weareadaptive.infra.responder.TraderResponder;
 import org.weareadaptive.infra.session.ClientSessionServiceImpl;
 import org.weareadaptive.service.OrderService;
 
@@ -18,9 +17,18 @@ public class TradingClusteredService implements ClusteredService
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(TradingClusteredService.class);
 
-    private final ClientSessionServiceImpl clientSession = new ClientSessionServiceImpl();
-    private final OrderService orderService = new OrderService(new TraderResponder(clientSession));
-    private final IngressAdapter ingressAdapter = new IngressAdapter(orderService);
+    private final ClientSessionServiceImpl clientSession;
+    private final OrderService orderService;
+    private final IngressAdapter ingressAdapter;
+
+    public TradingClusteredService(final ClientSessionServiceImpl clientSession,
+                                   final OrderService orderService,
+                                   final IngressAdapter ingressAdapter)
+    {
+        this.clientSession = clientSession;
+        this.orderService = orderService;
+        this.ingressAdapter = ingressAdapter;
+    }
 
     @Override
     public void onStart(final Cluster cluster, final Image snapshotImage)

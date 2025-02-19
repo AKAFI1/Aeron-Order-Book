@@ -1,11 +1,10 @@
-package org.weareadaptive.domain;
+package org.weareadaptive.domain.dto;
 
 import com.weareadaptive.sbe.Side;
 
 public record StopOrder(Side side,
                         long orderId,
                         long userId,
-                        long price,
                         long stopPrice,
                         int quantity,
                         long timestamp)

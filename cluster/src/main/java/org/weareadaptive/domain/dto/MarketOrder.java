@@ -1,11 +1,11 @@
-package org.weareadaptive.domain;
+package org.weareadaptive.domain.dto;
 
 import com.weareadaptive.sbe.Side;
 
-public record MarketOrder(Side side,
+public record MarketOrder(String Instrument,
+                          String side,
                           long orderId,
                           long userId,
-                          long price,
                           int quantity,
                           long timestamp)
 {

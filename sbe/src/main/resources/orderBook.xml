@@ -51,15 +51,9 @@
             <validValue name="CLOSED">1</validValue>
         </enum>
 
-        <enum name="OrderType" encodingType="uint8">
-            <validValue name="MARKET_ORDER">1</validValue>
-            <validValue name="LIMIT_ORDER">2</validValue>
-            <validValue name="STOP_ORDER">3</validValue>
-        </enum>
-
         <enum name="Side" encodingType="uint8">
-            <validValue name="BID">1</validValue>
-            <validValue name="ASK">2</validValue>
+            <validValue name="BID">0</validValue>
+            <validValue name="ASK">1</validValue>
         </enum>
 
         <composite name="pricet">
@@ -71,31 +65,25 @@
 
     <sbe:message name="MarketRequest" id="1" description="submit a new market order">
         <field name="username"       id="1"     type="fixedStringEncoding"/>
-        <field name="orderType"      id="2"     type="OrderType"/>
-        <field name="side"           id="3"     type="Side"  />
-        <field name="price"          id="4"     type="uint64"/>
-        <field name="quantity"       id="5"     type="int32" />
-        <field name="timestamp"      id="6"     type="uint64"/>
+        <field name="side"           id="2"     type="Side"  />
+        <field name="quantity"       id="4"     type="int32" />
+        <field name="timestamp"      id="5"     type="uint64"/>
     </sbe:message>
 
     <sbe:message name="LimitOrderRequest" id="2" description="submit a new limit order">
         <field name="username"       id="1"     type="fixedStringEncoding"/>
-        <field name="orderType"      id="2"     type="OrderType"        />
-        <field name="side"           id="3"     type="Side"             />
-        <field name="price"          id="4"     type="uint64"           />
-        <field name="limitPrice"     id="5"     type="uint64"           />
-        <field name="quantity"       id="6"     type="int32"            />
-        <field name="timestamp"      id="7"     type="uint64"           />
+        <field name="side"           id="2"     type="Side"             />
+        <field name="limitPrice"     id="4"     type="uint64"           />
+        <field name="quantity"       id="5"     type="int32"            />
+        <field name="timestamp"      id="6"     type="uint64"           />
     </sbe:message>
 
     <sbe:message name="StopOrderRequest" id="3" description="submit a new stop order">
         <field name="username"       id="1"     type="fixedStringEncoding"/>
-        <field name="orderType"      id="2"     type="OrderType"/>
-        <field name="side"           id="3"     type="Side"  />
-        <field name="price"          id="4"     type="uint64"/>
-        <field name="stopPrice"      id="5"     type="uint64"/>
-        <field name="quantity"       id="6"     type="int32" />
-        <field name="timestamp"      id="7"     type="uint64"/>
+        <field name="side"           id="2"     type="Side"  />
+        <field name="stopPrice"      id="4"     type="uint64"/>
+        <field name="quantity"       id="5"     type="int32" />
+        <field name="timestamp"      id="6"     type="uint64"/>
     </sbe:message>
 
     <sbe:message name="ActionResult" id="4">

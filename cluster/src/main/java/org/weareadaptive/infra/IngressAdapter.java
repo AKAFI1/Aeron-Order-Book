@@ -6,9 +6,6 @@ import io.aeron.logbuffer.Header;
 import org.agrona.DirectBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.weareadaptive.domain.LimitOrder;
-import org.weareadaptive.domain.MarketOrder;
-import org.weareadaptive.domain.StopOrder;
 import org.weareadaptive.service.OrderService;
 import org.weareadaptive.util.SbeFactory;
 
@@ -44,21 +41,30 @@ public class IngressAdapter implements FragmentHandler
                 final FixedStringEncodingDecoder usernameDecoder = sf.marketRequestDecoder().username();
                 final String username = usernameDecoder.string();
 
-                orderService.handleMarketOrderRequest(
+                final Side sideEnum = sf.marketRequestDecoder().side();
+
+                orderService.handleMarketRequest(
                                     username,
-                                    sf.marketRequestDecoder().side(),
-                                    sf.marketRequestDecoder().price(),
+                                    sf.toString(sideEnum),
                                     sf.marketRequestDecoder().quantity(),
                                     sf.marketRequestDecoder().timestamp());
             }
             case LimitOrderRequestDecoder.TEMPLATE_ID ->
             {
-                sf.limitRequestDecoder().wrapAndApplyHeader(buffer, 0, sf.headerDecoder());
+                sf.limitRequestDecoder().wrap(
+                        buffer,
+                        offset + sf.headerDecoder().encodedLength(),
+                        sf.headerDecoder().blockLength(),
+                        version);
 
-                orderService.handleLimitOrderRequest(
-                        sf.limitRequestDecoder().username().toString(),
-                        sf.limitRequestDecoder().side(),
-                        sf.limitRequestDecoder().price(),
+                final FixedStringEncodingDecoder usernameDecoder = sf.limitRequestDecoder().username();
+                final String username = usernameDecoder.string();
+
+                final Side sideEnum = sf.limitRequestDecoder().side();
+
+                orderService.handleLimitRequest(
+                        username,
+                        sf.toString(sideEnum),
                         sf.limitRequestDecoder().limitPrice(),
                         sf.limitRequestDecoder().quantity(),
                         sf.limitRequestDecoder().timestamp());
@@ -67,10 +73,9 @@ public class IngressAdapter implements FragmentHandler
             {
                 sf.stopRequestDecoder().wrapAndApplyHeader(buffer, 0, sf.headerDecoder());
 
-                orderService.handleStopOrderRequest(
+                orderService.handleStopRequest(
                         sf.stopRequestDecoder().username().toString(),
                         sf.stopRequestDecoder().side(),
-                        sf.stopRequestDecoder().price(),
                         sf.stopRequestDecoder().stopPrice(),
                         sf.stopRequestDecoder().quantity(),
                         sf.stopRequestDecoder().timestamp());

@@ -1,11 +1,9 @@
-package org.weareadaptive.domain;
+package org.weareadaptive.domain.dto;
 
-import com.weareadaptive.sbe.Side;
-
-public record LimitOrder(Side side,
+public record LimitOrder(String Instrument,
+                         String side,
                          long orderId,
                          long userId,
-                         long price,
                          long limitPrice,
                          int quantity,
                          long timestamp)

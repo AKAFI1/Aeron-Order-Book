@@ -1,7 +1,7 @@
 package org.weareadaptive.domain.repository;
 
 import org.agrona.collections.Long2ObjectHashMap;
-import org.weareadaptive.domain.User;
+import org.weareadaptive.domain.dto.User;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;

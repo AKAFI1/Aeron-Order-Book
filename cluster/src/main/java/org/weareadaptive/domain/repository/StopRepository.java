@@ -1,7 +1,7 @@
 package org.weareadaptive.domain.repository;
 
 import org.agrona.collections.Long2ObjectHashMap;
-import org.weareadaptive.domain.StopOrder;
+import org.weareadaptive.domain.dto.StopOrder;
 
 import java.util.List;
 import java.util.stream.Collectors;

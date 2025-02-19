@@ -3,36 +3,46 @@ package org.weareadaptive.service;
 import com.weareadaptive.sbe.Side;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.weareadaptive.domain.LimitOrder;
-import org.weareadaptive.domain.MarketOrder;
-import org.weareadaptive.domain.StopOrder;
+import org.weareadaptive.domain.OrderBook;
+import org.weareadaptive.domain.dto.LimitOrder;
+import org.weareadaptive.domain.dto.MarketOrder;
+import org.weareadaptive.domain.dto.StopOrder;
 import org.weareadaptive.domain.repository.LimitRepository;
 import org.weareadaptive.domain.repository.MarketRepository;
 import org.weareadaptive.domain.repository.StopRepository;
 import org.weareadaptive.domain.repository.UserRepository;
 import org.weareadaptive.infra.responder.TraderResponder;
-import org.weareadaptive.infra.session.ClientSessionServiceImpl;
 
 
 
 public class OrderService
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
-    private final MarketRepository marketRepository = new MarketRepository();
-    private final LimitRepository limitRepository = new LimitRepository();
-    private final StopRepository stopRepository = new StopRepository();
-    private final UserRepository userRepository = new UserRepository();
-    private final ClientSessionServiceImpl clientSessionService = new ClientSessionServiceImpl();
+    private final MarketRepository marketRepository;
+    private final LimitRepository limitRepository;
+    private final StopRepository stopRepository;
+    private final UserRepository userRepository;
+    private final OrderBook orderBook;
+
     private final TraderResponder traderResponder;
 
-    public OrderService(final TraderResponder traderResponder)
+    public OrderService(final MarketRepository marketRepository,
+                        final LimitRepository limitRepository,
+                        final StopRepository stopRepository,
+                        final UserRepository userRepository,
+                        final OrderBook orderBook,
+                        final TraderResponder traderResponder)
     {
+        this.marketRepository = marketRepository;
+        this.limitRepository = limitRepository;
+        this.stopRepository = stopRepository;
+        this.userRepository = userRepository;
+        this.orderBook = orderBook;
         this.traderResponder = traderResponder;
     }
 
-    public void handleMarketOrderRequest(final String username,
-                                         final Side sbeSide,
-                                         final long price,
+    public void handleMarketRequest(final String username,
+                                         final String sbeSide,
                                          final int quantity,
                                          final long timestampMs)
     {
@@ -40,65 +50,52 @@ public class OrderService
         final long orderId = marketRepository.getOrCreateOrderId();
 
         final MarketOrder marketOrder = new MarketOrder(
+                "BTC",
                 sbeSide,
                 orderId,
                 userId,
-                price,
                 quantity,
                 timestampMs
         );
 
+        orderBook.placeMarketOrder(marketOrder);
+
+        orderNotification(username, "Market", marketOrder);
         marketRepository.add(marketOrder);
-        orderNotification(username, marketOrder);
         LOGGER.info("Market order added: {}", marketOrder);
-
-        final Side side = Side.valueOf(sbeSide.toString());
-
-        switch (side)
-        {
-            case BID ->
-            { placeBuyOrder(marketOrder); }
-            case ASK ->
-            { placeSellOrder(marketOrder); }
-        }
     }
 
     @SuppressWarnings("checkstyle:LeftCurly")
-    public void handleLimitOrderRequest(final String username,
-                                        final Side sbeSide,
-                                        final long price,
+    public void handleLimitRequest(final String username,
+                                        final String sbeSide,
                                         final long limitPrice,
                                         final int quantity,
                                         final long timestamp)
     {
         final long userId = userRepository.getOrCreateUserId(username);
-        final long orderId = marketRepository.getOrCreateOrderId();
+        final long orderId = limitRepository.getOrCreateOrderId();
 
         final LimitOrder limitOrder = new LimitOrder(
+                "BTC",
                 sbeSide,
                 orderId,
                 userId,
-                price,
                 limitPrice,
                 quantity,
                 timestamp
         );
 
+        orderNotification(username, "Limit", limitOrder);
+
         limitRepository.add(limitOrder);
-        orderNotification(username, limitOrder);
+        LOGGER.info("Limit order added: {}", limitOrder);
 
-        final Side side = Side.valueOf(limitOrder.side().toString());
-
-        switch (side) {
-            case BID -> { placeBuyOrder(limitOrder); }
-            case ASK -> { placeSellOrder(limitOrder); }
-        }
+        orderBook.placeLimitOrder(limitOrder);
     }
 
     @SuppressWarnings("checkstyle:LeftCurly")
-    public void handleStopOrderRequest(final String username,
+    public void handleStopRequest(final String username,
                                        final Side sbeSide,
-                                       final long price,
                                        final long stopPrice,
                                        final int quantity,
                                        final long timestamp)
@@ -110,35 +107,19 @@ public class OrderService
                 sbeSide,
                 orderId,
                 userId,
-                price,
                 stopPrice,
                 quantity,
                 timestamp
         );
+        orderNotification(username, "Stop", stopOrder);
 
         stopRepository.add(stopOrder);
-        orderNotification(username, stopOrder);
 
-        final Side side = Side.valueOf(stopOrder.side().toString());
-
-        switch (side)
-        {
-            case BID -> { placeBuyOrder(stopOrder); }
-            case ASK -> { placeSellOrder(stopOrder); }
-        }
     }
 
-    private <T> void placeBuyOrder(final T order)
+    private <T> void orderNotification(final String username, final String orderType, final T order)
     {
-    }
-
-    private <T> void placeSellOrder(final T order)
-    {
-    }
-
-    private <T> void orderNotification(final String username, final T order)
-    {
-        final String response = "Thank you " + username + " for making an order: \n" + order;
+        final String response = "Thank you " + username + " for making a " + orderType + " order: \n" + order;
 
         traderResponder.sendResponseMessage(response);
     }

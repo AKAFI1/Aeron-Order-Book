@@ -110,4 +110,14 @@ public final class SbeFactory
     {
         return stopRequestEncoder;
     }
+
+    public Side fromString(final String side)
+    {
+        return switch (side.toUpperCase())
+        {
+            case "BID", "BUY" -> Side.BID;
+            case "ASK", "SELL" -> Side.ASK;
+            default -> throw new IllegalArgumentException("Unknown side: " + side);
+        };
+    }
 }
