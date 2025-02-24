@@ -24,10 +24,11 @@ public class IngressAdapter implements FragmentHandler
     public void onFragment(final DirectBuffer buffer, final int offset, final int length, final Header header)
     {
         sf.headerDecoder().wrap(buffer, offset);
+        final int blockLength = sf.headerDecoder().blockLength();
         final int templateId = sf.headerDecoder().templateId();
         final int version = sf.headerDecoder().version();
         final long correlationId = sf.headerDecoder().correlationId();
-
+        LOGGER.info("CorrelationId: {}, BlockLength: {}, TemplateId: {}", correlationId, blockLength, templateId);
         switch (templateId)
         {
             case MarketRequestDecoder.TEMPLATE_ID ->
@@ -35,7 +36,7 @@ public class IngressAdapter implements FragmentHandler
                 sf.marketRequestDecoder().wrap(
                         buffer,
                         offset + sf.headerDecoder().encodedLength(),
-                        sf.headerDecoder().blockLength(),
+                        blockLength,
                         version);
 
                 final FixedStringEncodingDecoder usernameDecoder = sf.marketRequestDecoder().username();
@@ -44,6 +45,7 @@ public class IngressAdapter implements FragmentHandler
                 final Side sideEnum = sf.marketRequestDecoder().side();
 
                 orderService.handleMarketRequest(
+                                    correlationId,
                                     username,
                                     sf.toString(sideEnum),
                                     sf.marketRequestDecoder().quantity(),
@@ -54,7 +56,7 @@ public class IngressAdapter implements FragmentHandler
                 sf.limitRequestDecoder().wrap(
                         buffer,
                         offset + sf.headerDecoder().encodedLength(),
-                        sf.headerDecoder().blockLength(),
+                        blockLength,
                         version);
 
                 final FixedStringEncodingDecoder usernameDecoder = sf.limitRequestDecoder().username();
@@ -63,22 +65,13 @@ public class IngressAdapter implements FragmentHandler
                 final Side sideEnum = sf.limitRequestDecoder().side();
 
                 orderService.handleLimitRequest(
+                        correlationId,
                         username,
                         sf.toString(sideEnum),
                         sf.limitRequestDecoder().limitPrice(),
                         sf.limitRequestDecoder().quantity(),
                         sf.limitRequestDecoder().timestamp());
-            }
-            case StopOrderRequestDecoder.TEMPLATE_ID ->
-            {
-                sf.stopRequestDecoder().wrapAndApplyHeader(buffer, 0, sf.headerDecoder());
 
-                orderService.handleStopRequest(
-                        sf.stopRequestDecoder().username().toString(),
-                        sf.stopRequestDecoder().side(),
-                        sf.stopRequestDecoder().stopPrice(),
-                        sf.stopRequestDecoder().quantity(),
-                        sf.stopRequestDecoder().timestamp());
             }
 
         }

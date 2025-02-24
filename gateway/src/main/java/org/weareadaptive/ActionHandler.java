@@ -7,14 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.weareadaptive.dto.LimitRequest;
 import org.weareadaptive.dto.MarketRequest;
-import org.weareadaptive.dto.StopRequest;
 import org.weareadaptive.util.SbeFactory;
 
 public class ActionHandler
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
-    private final SbeFactory sf = SbeFactory.sbeFactory();
 
+    private final SbeFactory sf = SbeFactory.sbeFactory();
     private final ManyToOneRingBuffer towardsClusterBuffer;
 
     public ActionHandler(final ManyToOneRingBuffer towardsClusterBuffer)
@@ -24,9 +23,11 @@ public class ActionHandler
 
     public void onMarketOrder(final MarketRequest request, final long correlationId)
     {
+        sf.limitRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder());
+        sf.headerEncoder().correlationId(correlationId);
+
         final int length = sf.headerEncoder().encodedLength() +
-                sf.marketRequestEncoder().encodedLength() +
-                sf.stringEncoder().encodedLength();
+                sf.limitRequestEncoder().encodedLength();
 
         final int claimIndex = towardsClusterBuffer.tryClaim(1, length);
 
@@ -56,10 +57,11 @@ public class ActionHandler
 
     public void onLimitOrder(final LimitRequest request, final long correlationId)
     {
+        sf.limitRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder());
+        sf.headerEncoder().correlationId(correlationId);
 
         final int length = sf.headerEncoder().encodedLength() +
-                sf.limitRequestEncoder().encodedLength() +
-                sf.stringEncoder().encodedLength();
+                sf.limitRequestEncoder().encodedLength();
 
         final int claimIndex = towardsClusterBuffer.tryClaim(1, length);
 
@@ -87,25 +89,4 @@ public class ActionHandler
         }
     }
 
-    public void onStopOrder(final StopRequest request, final long correlationId)
-    {
-        final int length = sf.headerEncoder().encodedLength() + sf.stopRequestEncoder().encodedLength();
-        final int claimIndex = towardsClusterBuffer.tryClaim(1, length);
-        if (claimIndex > 0)
-        {
-            sf.stopRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), claimIndex, sf.headerEncoder());
-
-            sf.stopRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder())
-                    .side(request.side())
-                    .stopPrice(request.stopPrice())
-                    .quantity(request.quantity())
-                    .timestamp(request.timestamp());
-
-            towardsClusterBuffer.commit(claimIndex);
-        }
-        else
-        {
-            LOGGER.error("Failed to claim ring buffer space for stop order request");
-        }
-    }
 }

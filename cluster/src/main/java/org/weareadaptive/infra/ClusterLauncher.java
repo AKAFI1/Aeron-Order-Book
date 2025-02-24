@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.weareadaptive.domain.OrderBook;
 import org.weareadaptive.domain.repository.LimitRepository;
 import org.weareadaptive.domain.repository.MarketRepository;
-import org.weareadaptive.domain.repository.StopRepository;
 import org.weareadaptive.domain.repository.UserRepository;
 import org.weareadaptive.infra.responder.TraderResponder;
 import org.weareadaptive.infra.session.ClientSessionServiceImpl;
@@ -42,12 +41,11 @@ public class ClusterLauncher
 
         final MarketRepository marketRepository = new MarketRepository();
         final LimitRepository limitRepository = new LimitRepository();
-        final StopRepository stopRepository = new StopRepository();
         final UserRepository userRepository = new UserRepository();
 
         final ClientSessionServiceImpl clientSessionService = new ClientSessionServiceImpl();
         final TraderResponder traderResponder = new TraderResponder(clientSessionService);
-        final OrderService orderService = new OrderService(marketRepository, limitRepository, stopRepository, userRepository, orderBook, traderResponder);
+        final OrderService orderService = new OrderService(marketRepository, limitRepository, userRepository, orderBook, traderResponder);
         final IngressAdapter ingressAdapter = new IngressAdapter(orderService);
         final ShutdownSignalBarrier barrier = new ShutdownSignalBarrier();
 

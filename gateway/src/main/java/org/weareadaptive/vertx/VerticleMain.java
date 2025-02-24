@@ -102,9 +102,12 @@ public class VerticleMain extends AbstractVerticle
         while (towardsClientBuffer.read((msgTypeId, buffer, index, length) ->
         {
             sf.resultDecoder().wrapAndApplyHeader(buffer, index, sf.headerDecoder());
+            final long correlationId = sf.headerDecoder().correlationId();
             final String message = sf.resultDecoder().resultMessage();
 
-            onReceiveMessageFromCluster(message);
+            final ServerWebSocket webSocket = correlationIdRepository.getWebSocketByCorrelationId(correlationId);
+
+            onReceiveBroadcastFromCluster(webSocket, message);
         }) > 0)
         {
             //continue reading buffer while there are  still messages
@@ -134,13 +137,6 @@ public class VerticleMain extends AbstractVerticle
                     final LimitRequest limitRequest = objectMapper.treeToValue(payload, LimitRequest.class);
                     actionHandler.onLimitOrder(limitRequest, correlationId);
                 }
-                case STOP_ORDER ->
-                {
-                    LOGGER.info("STOP ORDER action received");
-                    final StopRequest stopRequest = objectMapper.treeToValue(payload, StopRequest.class);
-                    actionHandler.onStopOrder(stopRequest, correlationId);
-
-                }
                 default -> LOGGER.error("Unknown action {}", action);
             }
         }
@@ -150,8 +146,9 @@ public class VerticleMain extends AbstractVerticle
         }
     }
 
-    private void onReceiveMessageFromCluster(final String msg)
+    private void onReceiveBroadcastFromCluster(final ServerWebSocket ws, final String msg)
     {
+
         for (final ServerWebSocket webSocket : webSockets)
         {
             if (!webSocket.isClosed())

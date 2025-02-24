@@ -1,6 +1,5 @@
 package org.weareadaptive.dto;
 
-import com.weareadaptive.sbe.OrderType;
 
 public record MarketRequest(String username,
                             String side,

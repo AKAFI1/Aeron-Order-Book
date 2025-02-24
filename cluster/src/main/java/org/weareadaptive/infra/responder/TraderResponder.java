@@ -18,8 +18,10 @@ public class TraderResponder implements ClientResponder
     }
 
     @Override
-    public void sendResponseMessage(final String message)
+    public void sendResponseMessage(final long correlationId, final String message)
     {
+        sf.headerEncoder().wrap(buffer, 0);
+        sf.headerEncoder().correlationId(correlationId);
         sf.resultEncoder().wrapAndApplyHeader(buffer, 0, sf.headerEncoder());
         sf.resultEncoder().resultMessage(message);
 

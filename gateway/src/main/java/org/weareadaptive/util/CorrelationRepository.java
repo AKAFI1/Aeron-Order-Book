@@ -8,7 +8,7 @@ import java.util.UUID;
 public class CorrelationRepository
 {
     private long correlationId;
-    private final Long2ObjectHashMap<ServerWebSocket> orderById = new Long2ObjectHashMap<>();
+    private final Long2ObjectHashMap<ServerWebSocket> webSocketByCorrId = new Long2ObjectHashMap<>();
 
     public CorrelationRepository(final long correlationId)
     {
@@ -18,18 +18,18 @@ public class CorrelationRepository
     public long generateAndStoreCorrelationId(final ServerWebSocket serverWebSocket)
     {
         correlationId = UUID.randomUUID().getMostSignificantBits();
-        orderById.put(correlationId, serverWebSocket);
+        webSocketByCorrId.put(correlationId, serverWebSocket);
         return correlationId;
     }
 
-    public Object getRequestByCorrelationId()
+    public ServerWebSocket getWebSocketByCorrelationId(final long correlationId)
     {
-        return orderById.get(correlationId);
+        return webSocketByCorrId.get(correlationId);
     }
 
-    public void removeCorrelationId(final long correlationId)
+    public void remove(final long correlationId)
     {
-        orderById.remove(correlationId);
+        webSocketByCorrId.remove(correlationId);
     }
 
 }

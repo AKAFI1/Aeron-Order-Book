@@ -10,64 +10,74 @@ import java.util.*;
 public class OrderBook
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderBook.class);
-    private final PriorityQueue<LimitOrder> buySide = new PriorityQueue<>(Comparator.comparingLong(o -> -o.limitPrice()));
-    private final PriorityQueue<LimitOrder> sellSide = new PriorityQueue<>(Comparator.comparingLong(LimitOrder::limitPrice));
+    private final TreeMap<Long, List<LimitOrder>> buySide = new TreeMap<>(Comparator.reverseOrder());
+    private final TreeMap<Long, List<LimitOrder>> sellSide = new TreeMap<>();
     private final Map<Long, List<String>> tradeHistory = new HashMap<>();
     private static final String SUPPORTED_INSTRUMENT = "BTC";
 
     public void placeLimitOrder(final LimitOrder order)
     {
-        if (Objects.equals(order.side(), "BID"))
-        {
-            buySide.add(order);
-        }
-        else
-        {
-            sellSide.add(order);
-        }
+        final TreeMap<Long, List<LimitOrder>> book = order.side().equals("BID") ? buySide : sellSide;
+        book.computeIfAbsent(order.limitPrice(), k -> new ArrayList<>()).add(order);
         matchOrders();
     }
 
-    public void placeMarketOrder(final MarketOrder order)
+    public boolean placeMarketOrder(final MarketOrder order)
     {
-        if (Objects.equals(order.side(), "BID"))
+        final TreeMap<Long, List<LimitOrder>> book = order.side().equals("BID") ? sellSide : buySide;
+
+        if (book.isEmpty())
         {
-            executeMarketOrder(order, sellSide);
+            LOGGER.warn("Market Order couldn't be executed: {}", order);
+            return false;
         }
-        else
-        {
-            executeMarketOrder(order, buySide);
-        }
+        executeMarketOrder(order, book);
+        return true;
     }
 
-    private void executeMarketOrder(MarketOrder marketOrder, final PriorityQueue<LimitOrder> book)
+    private void executeMarketOrder(final MarketOrder marketOrder, final TreeMap<Long, List<LimitOrder>> book)
     {
         int remainingQuantity = marketOrder.quantity();
 
         while (!book.isEmpty() && remainingQuantity > 0)
         {
-            final LimitOrder limitOrder = book.poll();
-            final int matchedQuantity = Math.min(limitOrder.quantity(), remainingQuantity);
+            final Long bestPrice = book.firstKey();
+            final List<LimitOrder> limitOrders = book.get(bestPrice);
 
-            if (matchedQuantity > 0)
+            final Iterator<LimitOrder> iterator = limitOrders.iterator();
+            while (iterator.hasNext() && remainingQuantity > 0)
             {
-                final String tradeDetails = "Market Order Executed " + matchedQuantity + " BTC @ $" + limitOrder.limitPrice();
+                final LimitOrder limitOrder = iterator.next();
+                final int matchedQuantity = Math.min(limitOrder.quantity(), remainingQuantity);
+
+                final String tradeDetails = "Trade executed: " + matchedQuantity + " BTC @ $" + bestPrice;
                 LOGGER.info(tradeDetails);
                 tradeHistory.computeIfAbsent(marketOrder.orderId(), k -> new ArrayList<>()).add(tradeDetails);
+
+                if (limitOrder.quantity() > matchedQuantity)
+                {
+                    limitOrders.set(limitOrders.indexOf(limitOrder), new LimitOrder(
+                            "BTC",
+                            limitOrder.side(),
+                            limitOrder.orderId(),
+                            limitOrder.userId(),
+                            limitOrder.limitPrice(),
+                            limitOrder.quantity() - matchedQuantity,
+                            limitOrder.timestamp()
+                    ));
+                }
+                else
+                {
+                    iterator.remove();
+                }
+
+                remainingQuantity -= matchedQuantity;
             }
 
-            if (limitOrder.quantity() > matchedQuantity)
+            if (limitOrders.isEmpty())
             {
-                book.add(new LimitOrder(SUPPORTED_INSTRUMENT,
-                        limitOrder.side(),
-                        limitOrder.orderId(),
-                        limitOrder.userId(),
-                        limitOrder.limitPrice(),
-                        limitOrder.quantity() - matchedQuantity,
-                        limitOrder.timestamp()));
-
+                book.remove(bestPrice);
             }
-            remainingQuantity -= matchedQuantity;
         }
     }
 
@@ -75,20 +85,26 @@ public class OrderBook
     private void matchOrders()
     {
         LOGGER.info("Matching orders");
-        while (!buySide.isEmpty() && !sellSide.isEmpty() && buySide.peek().limitPrice() >= sellSide.peek().limitPrice())
+        while (!buySide.isEmpty() && !sellSide.isEmpty() && buySide.firstKey() >= sellSide.firstKey())
         {
-            final LimitOrder bid = buySide.poll();
-            final LimitOrder ask = sellSide.poll();
+            final Long bidPrice = buySide.firstKey();
+            final Long askPrice = sellSide.firstKey();
+
+            final List<LimitOrder> buyList = buySide.get(bidPrice);
+            final List<LimitOrder> sellList = sellSide.get(askPrice);
+
+            final LimitOrder bid = buyList.get(0);
+            final LimitOrder ask = sellList.get(0);
 
             final int matchedQuantity = Math.min(bid.quantity(), ask.quantity());
 
-            final String tradeDetails = "Limit Order Executed " + matchedQuantity + " BTC @ $" + ask.limitPrice();
-            tradeHistory.computeIfAbsent(bid.orderId(), k -> new ArrayList<>()).add(tradeDetails);
+            final String tradeDetails = "Limit Order Executed " + matchedQuantity + " BTC @ $" + askPrice;
             LOGGER.info(tradeDetails);
+            tradeHistory.computeIfAbsent(bid.orderId(), k -> new ArrayList<>()).add(tradeDetails);
 
            if (bid.quantity() > matchedQuantity)
            {
-               buySide.add(new LimitOrder(
+               buyList.set(0, new LimitOrder(
                        SUPPORTED_INSTRUMENT,
                        bid.side(),
                        bid.orderId(),
@@ -97,10 +113,14 @@ public class OrderBook
                        bid.quantity() - matchedQuantity,
                        bid.timestamp()));
            }
+           else
+           {
+               buyList.remove(0);
+           }
 
             if (ask.quantity() > matchedQuantity)
             {
-                sellSide.add(new LimitOrder(
+                sellList.set(0, new LimitOrder(
                         SUPPORTED_INSTRUMENT,
                         ask.side(),
                         ask.orderId(),
@@ -108,6 +128,19 @@ public class OrderBook
                         ask.limitPrice(),
                         ask.quantity() - matchedQuantity,
                         ask.timestamp()));
+            }
+            else
+            {
+                sellList.remove(0);
+            }
+
+            if (buyList.isEmpty())
+            {
+                buySide.remove(bidPrice);
+            }
+            if (sellList.isEmpty())
+            {
+                sellSide.remove(askPrice);
             }
         }
     }

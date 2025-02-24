@@ -58,7 +58,6 @@ public class ClusterClientAgent implements Agent
                 {
                     workCount += clusterClient.pollEgress();
                     workCount += towardsClusterBuffer.read(this::processRingBuffer);
-                    Thread.sleep(1000);
 
                     final long now = epochClock.time();
                     if (now >= (lastHeartbeatTime + HEARTBEAT_INTERVAL))
