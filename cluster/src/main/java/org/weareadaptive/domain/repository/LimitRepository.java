@@ -36,4 +36,14 @@ public class LimitRepository
     {
         return orderIdCounter.getAndIncrement();
     }
+
+    public void replace(final long orderId, final LimitOrder order)
+    {
+        orderById.put(orderId, order);
+    }
+
+    public void remove(final long orderId)
+    {
+        orderById.remove(orderId);
+    }
 }

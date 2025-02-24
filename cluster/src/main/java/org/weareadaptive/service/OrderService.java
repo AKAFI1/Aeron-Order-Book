@@ -112,7 +112,7 @@ public class OrderService
         else
         {
             response = "CorrelationId: " + correlationId +
-                    ". Market Order could not be matched due to insufficient liquidity.";
+                    ". \n Market Order could not be matched due to insufficient liquidity.";
         }
 
         traderResponder.sendResponseMessage(correlationId, response);

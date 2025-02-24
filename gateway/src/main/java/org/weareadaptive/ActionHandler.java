@@ -23,11 +23,10 @@ public class ActionHandler
 
     public void onMarketOrder(final MarketRequest request, final long correlationId)
     {
-        sf.limitRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder());
-        sf.headerEncoder().correlationId(correlationId);
+        sf.marketRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder());
 
         final int length = sf.headerEncoder().encodedLength() +
-                sf.limitRequestEncoder().encodedLength();
+                sf.marketRequestEncoder().encodedLength();
 
         final int claimIndex = towardsClusterBuffer.tryClaim(1, length);
 
@@ -81,6 +80,7 @@ public class ActionHandler
                     .quantity(request.quantity())
                     .timestamp(request.timestamp());
 
+            LOGGER.info("limit price in gw: {}", request.limitPrice());
             towardsClusterBuffer.commit(claimIndex);
         }
         else

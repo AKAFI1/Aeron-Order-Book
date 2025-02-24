@@ -37,11 +37,12 @@ public class ClusterLauncher
         final int nodeId = Integer.parseInt(args[0]);
         final String ingressChannel = args[1];
 
-        final OrderBook orderBook = new OrderBook();
 
         final MarketRepository marketRepository = new MarketRepository();
         final LimitRepository limitRepository = new LimitRepository();
         final UserRepository userRepository = new UserRepository();
+
+        final OrderBook orderBook = new OrderBook(marketRepository, limitRepository);
 
         final ClientSessionServiceImpl clientSessionService = new ClientSessionServiceImpl();
         final TraderResponder traderResponder = new TraderResponder(clientSessionService);

@@ -56,6 +56,7 @@
             <validValue name="ASK">1</validValue>
         </enum>
 
+
         <composite name="pricet">
             <type name="mantissa" primitiveType="int64"/>
             <type name="exponent" primitiveType="int8" presence="constant">-9</type>
@@ -78,16 +79,12 @@
         <field name="timestamp"      id="5"     type="uint64"           />
     </sbe:message>
 
-    <sbe:message name="StopOrderRequest" id="3" description="submit a new stop order">
-        <field name="username"       id="1"     type="fixedStringEncoding"/>
-        <field name="side"           id="2"     type="Side"  />
-        <field name="stopPrice"      id="4"     type="uint64"/>
-        <field name="quantity"       id="5"     type="int32" />
-        <field name="timestamp"      id="6"     type="uint64"/>
+    <sbe:message name="ActionResult" id="3">
+        <data name="resultMessage" id="1" type="varStringEncoding"/>
     </sbe:message>
 
-    <sbe:message name="ActionResult" id="4">
-        <data name="resultMessage" id="1" type="varStringEncoding"/>
+    <sbe:message name="snapshot" id="4">
+
     </sbe:message>
 
 

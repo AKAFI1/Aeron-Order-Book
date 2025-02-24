@@ -36,4 +36,9 @@ public class MarketRepository
     {
         return orderIdCounter.getAndIncrement();
     }
+
+    public void remove(final long orderId)
+    {
+        orderById.remove(orderId);
+    }
 }

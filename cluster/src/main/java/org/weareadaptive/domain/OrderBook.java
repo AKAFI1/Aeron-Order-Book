@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.weareadaptive.domain.dto.LimitOrder;
 import org.weareadaptive.domain.dto.MarketOrder;
+import org.weareadaptive.domain.repository.LimitRepository;
+import org.weareadaptive.domain.repository.MarketRepository;
 
 import java.util.*;
 
@@ -13,7 +15,16 @@ public class OrderBook
     private final TreeMap<Long, List<LimitOrder>> buySide = new TreeMap<>(Comparator.reverseOrder());
     private final TreeMap<Long, List<LimitOrder>> sellSide = new TreeMap<>();
     private final Map<Long, List<String>> tradeHistory = new HashMap<>();
+
+    private final MarketRepository marketRepository;
+    private final LimitRepository limitRepository;
     private static final String SUPPORTED_INSTRUMENT = "BTC";
+
+    public OrderBook(final MarketRepository marketRepository, final LimitRepository limitRepository)
+    {
+        this.marketRepository = marketRepository;
+        this.limitRepository = limitRepository;
+    }
 
     public void placeLimitOrder(final LimitOrder order)
     {
@@ -29,6 +40,7 @@ public class OrderBook
         if (book.isEmpty())
         {
             LOGGER.warn("Market Order couldn't be executed: {}", order);
+            marketRepository.remove(order.orderId());
             return false;
         }
         executeMarketOrder(order, book);
@@ -56,7 +68,7 @@ public class OrderBook
 
                 if (limitOrder.quantity() > matchedQuantity)
                 {
-                    limitOrders.set(limitOrders.indexOf(limitOrder), new LimitOrder(
+                    final LimitOrder updatedOrder = new LimitOrder(
                             "BTC",
                             limitOrder.side(),
                             limitOrder.orderId(),
@@ -64,10 +76,14 @@ public class OrderBook
                             limitOrder.limitPrice(),
                             limitOrder.quantity() - matchedQuantity,
                             limitOrder.timestamp()
-                    ));
+                    );
+
+                    limitOrders.set(limitOrders.indexOf(limitOrder), updatedOrder);
+                    limitRepository.replace(limitOrder.orderId(), updatedOrder);
                 }
                 else
                 {
+                    limitRepository.remove(limitOrder.orderId());
                     iterator.remove();
                 }
 
@@ -120,18 +136,21 @@ public class OrderBook
 
             if (ask.quantity() > matchedQuantity)
             {
-                sellList.set(0, new LimitOrder(
-                        SUPPORTED_INSTRUMENT,
+                final LimitOrder updatedOrder = new LimitOrder(SUPPORTED_INSTRUMENT,
                         ask.side(),
                         ask.orderId(),
                         ask.userId(),
                         ask.limitPrice(),
                         ask.quantity() - matchedQuantity,
-                        ask.timestamp()));
+                        ask.timestamp());
+
+                sellList.set(0, updatedOrder);
+                limitRepository.replace(ask.orderId(), updatedOrder);
             }
             else
             {
                 sellList.remove(0);
+                limitRepository.remove(ask.orderId());
             }
 
             if (buyList.isEmpty())
