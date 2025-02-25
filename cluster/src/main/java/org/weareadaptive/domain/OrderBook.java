@@ -28,8 +28,15 @@ public class OrderBook
 
     public void placeLimitOrder(final LimitOrder order)
     {
+        if (order.quantity() <= 0 || !order.instrument().equals(SUPPORTED_INSTRUMENT))
+        {
+            throw new IllegalArgumentException("Quantity must be greater than 0");
+
+        }
+
         final TreeMap<Long, List<LimitOrder>> book = order.side().equals("BID") ? buySide : sellSide;
         book.computeIfAbsent(order.limitPrice(), k -> new ArrayList<>()).add(order);
+        limitRepository.put(order.orderId(), order);
         matchOrders();
     }
 
@@ -96,6 +103,7 @@ public class OrderBook
                 book.remove(bestPrice);
             }
         }
+        marketRepository.remove(marketOrder.orderId());
     }
 
     @SuppressWarnings("checkstyle:NeedBraces")
@@ -133,6 +141,7 @@ public class OrderBook
            else
            {
                buyList.remove(0);
+               limitRepository.remove(bid.orderId());
            }
 
             if (ask.quantity() > matchedQuantity)

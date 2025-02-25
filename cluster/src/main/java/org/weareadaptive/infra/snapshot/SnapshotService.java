@@ -37,7 +37,6 @@ public class SnapshotService implements FragmentHandler
 
     private boolean snapshotFullyLoaded = false;
 
-
     public SnapshotService(final MarketRepository marketRepository,
                            final LimitRepository limitRepository,
                            final UserRepository userRepository)

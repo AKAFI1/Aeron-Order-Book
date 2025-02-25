@@ -89,9 +89,7 @@ public class OrderService
 
         orderNotification(correlationId, username, "Limit", limitOrder, true);
 
-        limitRepository.add(limitOrder);
         LOGGER.info("Limit order added: {}", limitOrder);
-
         orderBook.placeLimitOrder(limitOrder);
     }
 
