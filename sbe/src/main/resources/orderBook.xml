@@ -29,18 +29,10 @@
         <composite name="fixedStringEncoding">
             <type name="string" primitiveType="char" length="20" characterEncoding="UTF-8" description="Fixed-length string"/>
         </composite>
+        <composite name="fixedSide">
+            <type name="side" primitiveType="char" length="3" characterEncoding="UTF-8" description="fixed length instrument"/>
+        </composite>
 
-
-        <enum name="ResultCode" encodingType="int8">
-            <validValue name="Ok" description="Success">0</validValue>
-            <validValue name="SystemError" description="Some system error">1</validValue>
-            <validValue name="UnknownError" description="Unknown failure">2</validValue>
-            <validValue name="InvalidCustomer" description="Invalid Customer">3</validValue>
-            <validValue name="PriceTooLow" description="Price Too Low">4</validValue>
-            <validValue name="ExpiredAuction" description="Auction has run out">5</validValue>
-            <validValue name="DuplicationAuction" description="Auction with id already exists">6</validValue>
-            <validValue name="InvalidAuctionId" description="Auction id is not valid">7</validValue>
-        </enum>
         <enum name="BooleanType" encodingType="uint8">
             <validValue name="F">0</validValue>
             <validValue name="T">1</validValue>
@@ -66,26 +58,45 @@
 
     <sbe:message name="MarketRequest" id="1" description="submit a new market order">
         <field name="username"       id="1"     type="fixedStringEncoding"/>
-        <field name="side"           id="2"     type="Side"  />
-        <field name="quantity"       id="3"     type="int32" />
-        <field name="timestamp"      id="4"     type="uint64"/>
+        <field name="side"           id="2"     type="Side"               />
+        <field name="quantity"       id="3"     type="int32"              />
+        <field name="timestamp"      id="4"     type="uint64"             />
     </sbe:message>
 
     <sbe:message name="LimitOrderRequest" id="2" description="submit a new limit order">
         <field name="username"       id="1"     type="fixedStringEncoding"/>
-        <field name="side"           id="2"     type="Side"             />
-        <field name="limitPrice"     id="3"     type="uint64"           />
-        <field name="quantity"       id="4"     type="int32"            />
-        <field name="timestamp"      id="5"     type="uint64"           />
+        <field name="side"           id="2"     type="Side"               />
+        <field name="limitPrice"     id="3"     type="uint64"             />
+        <field name="quantity"       id="4"     type="int32"              />
+        <field name="timestamp"      id="5"     type="uint64"             />
     </sbe:message>
 
     <sbe:message name="ActionResult" id="3">
-        <data name="resultMessage" id="1" type="varStringEncoding"/>
+        <data name="resultMessage"   id="1"     type="varStringEncoding"  />
     </sbe:message>
 
-    <sbe:message name="snapshot" id="4">
-
+    <sbe:message name="MarketOrder" id="4"  description="Market orders after processing">
+        <field name="instrument"     id="1"     type="fixedStringEncoding"/>
+        <field name="side"           id="2"     type="Side"               />
+        <field name="userId"         id="3"     type="uint64"             />
+        <field name="orderId"        id="4"     type="uint64"             />
+        <field name="quantity"       id="5"     type="int32"              />
+        <field name="timestamp"      id="6"     type="uint64"             />
     </sbe:message>
 
+    <sbe:message name="LimitOrder" id="5"   description="Limit orders after processing">
+        <field name="instrument"     id="1"     type="fixedStringEncoding"/>
+        <field name="side"           id="2"     type="Side"               />
+        <field name="userId"         id="3"     type="uint64"             />
+        <field name="orderId"        id="4"     type="uint64"             />
+        <field name="limitPrice"     id="5"     type="uint64"             />
+        <field name="quantity"       id="6"     type="int32"              />
+        <field name="timestamp"      id="7"     type="uint64"             />
+    </sbe:message>
+
+    <sbe:message name="User"      id="6"  description="Users that have been stored">
+        <field name="userId"         id="1"     type="uint64"             />
+        <field name="username"       id="2"     type="fixedStringEncoding"/>
+    </sbe:message>
 
 </sbe:messageSchema>

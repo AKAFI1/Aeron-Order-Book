@@ -12,6 +12,9 @@ public final class SbeFactory
     private final FixedStringEncodingDecoder fixedStringDecoder;
     private final FixedStringEncodingEncoder fixedStringEncoder;
 
+    private final FixedSideDecoder fixedSideDecoder;
+    private final FixedSideEncoder fixedSideEncoder;
+
     private final ActionResultDecoder resultDecoder;
     private final ActionResultEncoder resultEncoder;
 
@@ -21,8 +24,17 @@ public final class SbeFactory
     private final LimitOrderRequestDecoder limitRequestDecoder;
     private final LimitOrderRequestEncoder limitRequestEncoder;
 
-    private final StopOrderRequestDecoder stopRequestDecoder;
-    private final StopOrderRequestEncoder stopRequestEncoder;
+    private final MarketOrderDecoder marketOrderDecoder;
+    private final MarketOrderEncoder marketOrderEncoder;
+
+    private final LimitOrderDecoder limitOrderDecoder;
+    private final LimitOrderEncoder limitOrderEncoder;
+
+    private final UserDecoder userDecoder;
+    private final UserEncoder userEncoder;
+
+    private final SnapshotDecoder snapshotDecoder;
+    private final SnapshotEncoder snapshotEncoder;
 
 
     private SbeFactory()
@@ -33,6 +45,9 @@ public final class SbeFactory
         fixedStringDecoder = new FixedStringEncodingDecoder();
         fixedStringEncoder = new FixedStringEncodingEncoder();
 
+        fixedSideDecoder = new FixedSideDecoder();
+        fixedSideEncoder = new FixedSideEncoder();
+
         resultDecoder = new ActionResultDecoder();
         resultEncoder = new ActionResultEncoder();
 
@@ -42,8 +57,17 @@ public final class SbeFactory
         limitRequestDecoder = new LimitOrderRequestDecoder();
         limitRequestEncoder = new LimitOrderRequestEncoder();
 
-        stopRequestDecoder = new StopOrderRequestDecoder();
-        stopRequestEncoder = new StopOrderRequestEncoder();
+        marketOrderDecoder = new MarketOrderDecoder();
+        marketOrderEncoder = new MarketOrderEncoder();
+
+        limitOrderDecoder = new LimitOrderDecoder();
+        limitOrderEncoder = new LimitOrderEncoder();
+
+        userDecoder = new UserDecoder();
+        userEncoder = new UserEncoder();
+
+        snapshotDecoder = new SnapshotDecoder();
+        snapshotEncoder = new SnapshotEncoder();
     }
 
     public static SbeFactory sbeFactory()
@@ -59,6 +83,16 @@ public final class SbeFactory
     public MessageHeaderEncoder headerEncoder()
     {
         return headerEncoder;
+    }
+
+    public FixedSideDecoder fixedSideDecoder()
+    {
+        return fixedSideDecoder;
+    }
+
+    public FixedSideEncoder fixedSideEncoder()
+    {
+        return fixedSideEncoder;
     }
 
     public FixedStringEncodingDecoder stringDecoder()
@@ -101,14 +135,44 @@ public final class SbeFactory
         return limitRequestEncoder;
     }
 
-    public StopOrderRequestDecoder stopRequestDecoder()
+    public MarketOrderDecoder marketOrderDecoder()
     {
-        return stopRequestDecoder;
+        return marketOrderDecoder;
     }
 
-    public StopOrderRequestEncoder stopRequestEncoder()
+    public MarketOrderEncoder marketOrderEncoder()
     {
-        return stopRequestEncoder;
+        return marketOrderEncoder;
+    }
+
+    public LimitOrderDecoder limitOrderDecoder()
+    {
+        return limitOrderDecoder;
+    }
+
+    public LimitOrderEncoder limitOrderEncoder()
+    {
+        return limitOrderEncoder;
+    }
+
+    public UserDecoder userDecoder()
+    {
+        return userDecoder;
+    }
+
+    public UserEncoder userEncoder()
+    {
+        return userEncoder;
+    }
+
+    public SnapshotDecoder snapshotDecoder()
+    {
+        return snapshotDecoder;
+    }
+
+    public SnapshotEncoder snapshotEncoder()
+    {
+        return snapshotEncoder;
     }
 
     public String toString(final Side side)
@@ -122,5 +186,15 @@ public final class SbeFactory
             default:
                 throw new IllegalArgumentException("Unknown side: " + side);
         }
+    }
+
+    public Side fromString(final String side)
+    {
+        return switch (side.toUpperCase())
+        {
+            case "BID", "BUY" -> Side.BID;
+            case "ASK", "SELL" -> Side.ASK;
+            default -> throw new IllegalArgumentException("Unknown side: " + side);
+        };
     }
 }

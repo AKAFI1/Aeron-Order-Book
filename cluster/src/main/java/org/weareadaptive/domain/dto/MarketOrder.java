@@ -1,8 +1,6 @@
 package org.weareadaptive.domain.dto;
 
-import com.weareadaptive.sbe.Side;
-
-public record MarketOrder(String Instrument,
+public record MarketOrder(String instrument,
                           String side,
                           long orderId,
                           long userId,

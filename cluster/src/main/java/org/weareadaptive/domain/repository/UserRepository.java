@@ -3,6 +3,7 @@ package org.weareadaptive.domain.repository;
 import org.agrona.collections.Long2ObjectHashMap;
 import org.weareadaptive.domain.dto.User;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -31,5 +32,15 @@ public class UserRepository
     public User getUserByUsername(final String username)
     {
         return usersByUsername.get(username);
+    }
+
+    public List<User> getAllUsers()
+    {
+        return usersById.values().stream().toList();
+    }
+
+    public void put(final long userId, final User user)
+    {
+        usersById.put(userId, user);
     }
 }

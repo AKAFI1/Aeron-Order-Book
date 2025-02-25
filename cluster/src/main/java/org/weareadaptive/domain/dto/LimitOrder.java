@@ -1,6 +1,6 @@
 package org.weareadaptive.domain.dto;
 
-public record LimitOrder(String Instrument,
+public record LimitOrder(String instrument,
                          String side,
                          long orderId,
                          long userId,

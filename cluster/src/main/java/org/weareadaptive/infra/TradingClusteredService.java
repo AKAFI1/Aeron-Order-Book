@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.weareadaptive.infra.session.ClientSessionServiceImpl;
 import org.weareadaptive.service.OrderService;
+import org.weareadaptive.infra.snapshot.SnapshotService;
 
 public class TradingClusteredService implements ClusteredService
 {
@@ -20,21 +21,32 @@ public class TradingClusteredService implements ClusteredService
     private final ClientSessionServiceImpl clientSession;
     private final OrderService orderService;
     private final IngressAdapter ingressAdapter;
+    private final SnapshotService snapshotService;
+
+    private Cluster cluster;
 
     public TradingClusteredService(final ClientSessionServiceImpl clientSession,
                                    final OrderService orderService,
-                                   final IngressAdapter ingressAdapter)
+                                   final IngressAdapter ingressAdapter,
+                                   final SnapshotService snapshotService)
     {
         this.clientSession = clientSession;
         this.orderService = orderService;
         this.ingressAdapter = ingressAdapter;
+        this.snapshotService = snapshotService;
     }
 
     @Override
     public void onStart(final Cluster cluster, final Image snapshotImage)
     {
+        this.cluster = cluster;
         clientSession.setIdleStrategy(cluster.idleStrategy());
-        // TODO check for snapshot
+        snapshotService.setIdleStrategy(cluster.idleStrategy());
+
+        if (snapshotImage != null)
+        {
+            snapshotService.loadSnapshot(snapshotImage);
+        }
     }
 
     @Override
@@ -74,7 +86,8 @@ public class TradingClusteredService implements ClusteredService
     @Override
     public void onTakeSnapshot(final ExclusivePublication snapshotPublication)
     {
-        // TODO call snapshot service to store state
+        LOGGER.info("Taking snapshot");
+        snapshotService.handleTakeSnapshot(snapshotPublication);
     }
 
     @Override

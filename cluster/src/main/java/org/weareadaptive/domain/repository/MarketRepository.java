@@ -29,7 +29,7 @@ public class MarketRepository
 
     public List<MarketOrder> getAllOrders()
     {
-        return orderById.values().stream().sorted().collect(Collectors.toList());
+        return orderById.values().stream().toList();
     }
 
     public long getOrCreateOrderId()
@@ -40,5 +40,10 @@ public class MarketRepository
     public void remove(final long orderId)
     {
         orderById.remove(orderId);
+    }
+
+    public void put(final long orderId, final MarketOrder order)
+    {
+        orderById.put(orderId, order);
     }
 }

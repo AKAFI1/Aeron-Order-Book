@@ -21,10 +21,6 @@ public final class SbeFactory
     private final LimitOrderRequestDecoder limitRequestDecoder;
     private final LimitOrderRequestEncoder limitRequestEncoder;
 
-    private final StopOrderRequestDecoder stopRequestDecoder;
-    private final StopOrderRequestEncoder stopRequestEncoder;
-
-
     private SbeFactory()
     {
         headerDecoder = new MessageHeaderDecoder();
@@ -42,8 +38,6 @@ public final class SbeFactory
         limitRequestDecoder = new LimitOrderRequestDecoder();
         limitRequestEncoder = new LimitOrderRequestEncoder();
 
-        stopRequestDecoder = new StopOrderRequestDecoder();
-        stopRequestEncoder = new StopOrderRequestEncoder();
     }
 
     public static SbeFactory sbeFactory()
@@ -99,16 +93,6 @@ public final class SbeFactory
     public LimitOrderRequestEncoder limitRequestEncoder()
     {
         return limitRequestEncoder;
-    }
-
-    public StopOrderRequestDecoder stopRequestDecoder()
-    {
-        return stopRequestDecoder;
-    }
-
-    public StopOrderRequestEncoder stopRequestEncoder()
-    {
-        return stopRequestEncoder;
     }
 
     public Side fromString(final String side)

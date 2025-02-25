@@ -14,6 +14,7 @@ import org.weareadaptive.domain.repository.UserRepository;
 import org.weareadaptive.infra.responder.TraderResponder;
 import org.weareadaptive.infra.session.ClientSessionServiceImpl;
 import org.weareadaptive.service.OrderService;
+import org.weareadaptive.infra.snapshot.SnapshotService;
 
 import java.util.List;
 
@@ -48,6 +49,7 @@ public class ClusterLauncher
         final TraderResponder traderResponder = new TraderResponder(clientSessionService);
         final OrderService orderService = new OrderService(marketRepository, limitRepository, userRepository, orderBook, traderResponder);
         final IngressAdapter ingressAdapter = new IngressAdapter(orderService);
+        final SnapshotService snapshotService = new SnapshotService(marketRepository, limitRepository, userRepository);
         final ShutdownSignalBarrier barrier = new ShutdownSignalBarrier();
 
         final ClusterConfig clusterConfig = ClusterConfig.create(
@@ -55,7 +57,7 @@ public class ClusterLauncher
                 List.of("localhost", "localhost", "localhost"),
                 List.of("localhost", "localhost", "localhost"),
                 9000,
-                new TradingClusteredService(clientSessionService, orderService, ingressAdapter));
+                new TradingClusteredService(clientSessionService, orderService, ingressAdapter, snapshotService));
 
         clusterConfig.mediaDriverContext().errorHandler(errorHandler("Media Driver"));
         clusterConfig.archiveContext().errorHandler(errorHandler("Archive"));
@@ -63,8 +65,7 @@ public class ClusterLauncher
         clusterConfig.consensusModuleContext().errorHandler(errorHandler("Consensus Module"));
         clusterConfig.clusteredServiceContext().errorHandler(errorHandler("Clustered Service"));
         clusterConfig.consensusModuleContext().ingressChannel(ingressChannel);
-        clusterConfig.consensusModuleContext().deleteDirOnStart(true);
-        //TODO change to false when snapshotting
+        clusterConfig.consensusModuleContext().deleteDirOnStart(false);
 
         try (ClusteredMediaDriver ignore = ClusteredMediaDriver.launch(
                 clusterConfig.mediaDriverContext(),

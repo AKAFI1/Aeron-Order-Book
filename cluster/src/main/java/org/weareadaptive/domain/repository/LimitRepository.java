@@ -2,6 +2,7 @@ package org.weareadaptive.domain.repository;
 
 import org.agrona.collections.Long2ObjectHashMap;
 import org.weareadaptive.domain.dto.LimitOrder;
+import org.weareadaptive.domain.dto.MarketOrder;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -29,7 +30,7 @@ public class LimitRepository
 
     public List<LimitOrder> getAllOrders()
     {
-        return orderById.values().stream().sorted().collect(Collectors.toList());
+        return orderById.values().stream().toList();
     }
 
     public long getOrCreateOrderId()
@@ -37,7 +38,7 @@ public class LimitRepository
         return orderIdCounter.getAndIncrement();
     }
 
-    public void replace(final long orderId, final LimitOrder order)
+    public void put(final long orderId, final LimitOrder order)
     {
         orderById.put(orderId, order);
     }

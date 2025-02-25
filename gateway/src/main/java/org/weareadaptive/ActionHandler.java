@@ -1,7 +1,6 @@
 package org.weareadaptive;
 
-import com.weareadaptive.sbe.FixedStringEncodingEncoder;
-import com.weareadaptive.sbe.Side;
+import com.weareadaptive.sbe.*;
 import org.agrona.concurrent.ringbuffer.ManyToOneRingBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +22,7 @@ public class ActionHandler
 
     public void onMarketOrder(final MarketRequest request, final long correlationId)
     {
-        sf.marketRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder());
-
-        final int length = sf.headerEncoder().encodedLength() +
-                sf.marketRequestEncoder().encodedLength();
+        final int length = MessageHeaderEncoder.ENCODED_LENGTH + MarketRequestEncoder.BLOCK_LENGTH;
 
         final int claimIndex = towardsClusterBuffer.tryClaim(1, length);
 
@@ -56,11 +52,7 @@ public class ActionHandler
 
     public void onLimitOrder(final LimitRequest request, final long correlationId)
     {
-        sf.limitRequestEncoder().wrapAndApplyHeader(towardsClusterBuffer.buffer(), 0, sf.headerEncoder());
-        sf.headerEncoder().correlationId(correlationId);
-
-        final int length = sf.headerEncoder().encodedLength() +
-                sf.limitRequestEncoder().encodedLength();
+        final int length = MessageHeaderEncoder.ENCODED_LENGTH + LimitOrderRequestEncoder.BLOCK_LENGTH;
 
         final int claimIndex = towardsClusterBuffer.tryClaim(1, length);
 

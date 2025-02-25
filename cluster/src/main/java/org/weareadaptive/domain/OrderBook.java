@@ -77,12 +77,13 @@ public class OrderBook
                             limitOrder.quantity() - matchedQuantity,
                             limitOrder.timestamp()
                     );
-
+                    LOGGER.info("updated limit order: {}", updatedOrder);
                     limitOrders.set(limitOrders.indexOf(limitOrder), updatedOrder);
-                    limitRepository.replace(limitOrder.orderId(), updatedOrder);
+                    limitRepository.put(limitOrder.orderId(), updatedOrder);
                 }
                 else
                 {
+                    LOGGER.info("limit order fulfilled: {}", limitOrder);
                     limitRepository.remove(limitOrder.orderId());
                     iterator.remove();
                 }
@@ -145,7 +146,7 @@ public class OrderBook
                         ask.timestamp());
 
                 sellList.set(0, updatedOrder);
-                limitRepository.replace(ask.orderId(), updatedOrder);
+                limitRepository.put(ask.orderId(), updatedOrder);
             }
             else
             {
